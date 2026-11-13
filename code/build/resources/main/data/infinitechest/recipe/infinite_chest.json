@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DDD",
+    "DCD",
+    "DDD"
+  ],
+  "key": {
+    "D": "minecraft:diamond_block",
+    "C": "minecraft:chest"
+  },
+  "result": {
+    "id": "infinitechest:infinite_chest",
+    "count": 1
+  }
+}

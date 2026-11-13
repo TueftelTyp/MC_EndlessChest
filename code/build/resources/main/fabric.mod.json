@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "infinitechest",
+  "version": "2.1",
+  "name": "Endless Chest",
+  "description": "Endless Chest: paged searchable storage with a dedicated inventory, sorting and GUI item transfers.",
+  "authors": [
+    "TueftelTyp"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "de.tuefteltyp.infinitechest.InfiniteChestMod"
+    ],
+    "modmenu": [
+      "de.tuefteltyp.infinitechest.client.InfiniteChestModMenu"
+    ],
+    "client": [
+      "de.tuefteltyp.infinitechest.client.EndlessChestClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*",
+    "cloth-config": "*",
+    "modmenu": "*"
+  },
+  "icon": "icon.png"
+}
