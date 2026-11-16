@@ -20,6 +20,10 @@ import net.minecraft.world.level.storage.ValueOutput;
 /** Server-thread-owned persistent inventory; component-exact stacks only. */
 public final class InfiniteChestBlockEntity extends BlockEntity implements Container, MenuProvider {
     private int openCount = 0;
+    private String networkName = "";
+
+    public String networkName() { return networkName; }
+    public void updateNetworkName(String name) { networkName = name; setChanged(); }
     private final List<ItemStack> stacks = new ArrayList<>();
 
     public InfiniteChestBlockEntity(BlockPos pos, BlockState state) {
@@ -197,10 +201,12 @@ public final class InfiniteChestBlockEntity extends BlockEntity implements Conta
     @Override protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.store("stored", ItemStack.CODEC.listOf(), snapshot());
+        output.putString("endlessName", networkName);
     }
 
     @Override protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
+        networkName = input.getStringOr("endlessName", "");
         stacks.clear();
         input.read("stored", ItemStack.CODEC.listOf()).ifPresent(saved ->
             saved.stream().filter(s -> s != null).map(ItemStack::copy).forEach(stacks::add));

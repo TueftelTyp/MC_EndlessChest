@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -42,6 +43,15 @@ public final class InfiniteChestBlock extends BaseEntityBlock {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
+    @Override public void setPlacedBy(Level level, BlockPos pos, BlockState state,
+            @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (level instanceof ServerLevel serverLevel
+                && level.getBlockEntity(pos) instanceof InfiniteChestBlockEntity chest) {
+            ChestDirectory.registerNew(serverLevel, chest);
+        }
+    }
+
     @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
 
     @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
@@ -69,6 +79,7 @@ public final class InfiniteChestBlock extends BaseEntityBlock {
 
     private InteractionResult open(Level level, BlockPos pos, Player player) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof InfiniteChestBlockEntity chest) {
+            if (level instanceof ServerLevel serverLevel) ChestDirectory.ensure(serverLevel, chest);
             player.openMenu(chest);
         }
         return InteractionResult.SUCCESS;

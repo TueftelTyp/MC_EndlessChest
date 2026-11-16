@@ -5,6 +5,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import com.google.gson.Gson;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,6 +30,7 @@ public final class PagedChestMenu extends AbstractContainerMenu {
     private String filter = "";
     private int selected = -1;
     private int syncedPages = 1;
+    private long lastRenameTick = -1000L;
 
     /** Client menu is populated from vanilla slot synchronization. */
     public PagedChestMenu(int id, Inventory inventory) {
@@ -40,16 +45,16 @@ public final class PagedChestMenu extends AbstractContainerMenu {
         if (chest != null) refresh();
         for (int row = 0; row < 5; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(visible, row * 9 + col, 48 + col * 18, 48 + row * 18));
+                addSlot(new Slot(visible, row * 9 + col, 8 + col * 18, 30 + row * 18));
             }
         }
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inventory, col + row * 9 + 9, 48 + col * 18, 190 + row * 18));
+                addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 140 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(inventory, col, 48 + col * 18, 248));
+            addSlot(new Slot(inventory, col, 8 + col * 18, 198));
         }
         addDataSlot(new DataSlot() {
             @Override public int get() { return page; }
@@ -64,6 +69,106 @@ public final class PagedChestMenu extends AbstractContainerMenu {
             @Override public void set(int value) { sort = value; }
         });
         if (chest != null) chest.startOpen(inventory.player);
+    }
+
+    /** The opened menu is the only authorization for rename and transfers. */
+    public void sendTargets(ServerPlayer player) {
+        if (chest == null || !stillValid(player) || !(player.level() instanceof ServerLevel serverLevel)) return;
+        String name = ChestDirectory.ensure(serverLevel, chest);
+        List<String> names = ChestDirectory.recipients(serverLevel, chest.getBlockPos());
+        // Keep the packet bounded. Hundreds of target names can exist, but only the first
+        // 150 are included in one GUI refresh (alphabetical order).
+        String json = new Gson().toJson(names.stream().limit(150).toList());
+        ServerPlayNetworking.send(player, new GuiNetwork.Targets(name, json));
+    }
+
+    public void rename(ServerPlayer player, String name) {
+        if (chest == null || !stillValid(player) || !(player.level() instanceof ServerLevel serverLevel)) return;
+        long tick = serverLevel.getGameTime();
+        if (tick - lastRenameTick < 10) return; // rate limit filesystem writes
+        lastRenameTick = tick;
+        ChestDirectory.RenameResult result = ChestDirectory.rename(serverLevel, chest, name);
+        String translation = switch (result) {
+            case SUCCESS -> "message.infinitechest.rename_success";
+            case INVALID -> "message.infinitechest.rename_invalid";
+            case TAKEN -> "message.infinitechest.rename_taken";
+            case UNAVAILABLE -> "message.infinitechest.rename_unavailable";
+        };
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(translation));
+        sendTargets(player);
+    }
+
+    public void changeRecipient(ServerPlayer player, String recipient, boolean add) {
+        if (chest == null || !stillValid(player) || !(player.level() instanceof ServerLevel level)) return;
+        if (ChestDirectory.ensure(level, chest).isEmpty()) return;
+        ChestDirectory.RecipientResult result = ChestDirectory.changeRecipient(level, chest.getBlockPos(), recipient, add);
+        String msg = switch (result) {
+            case ADDED -> "message.infinitechest.recipient_added";
+            case REMOVED -> "message.infinitechest.recipient_removed";
+            case DUPLICATE -> "message.infinitechest.recipient_duplicate";
+            case NOT_FOUND -> "message.infinitechest.recipient_not_found";
+            case INVALID -> "message.infinitechest.rename_invalid";
+            case FULL -> "message.infinitechest.recipient_full";
+            case UNAVAILABLE -> "message.infinitechest.rename_unavailable";
+        };
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(msg));
+        sendTargets(player);
+    }
+
+    public boolean transferNamed(ServerPlayer player, int shownSlot, String targetName, int amount) {
+        if (chest == null || !stillValid(player) || amount < 1 || amount > 2304
+                || shownSlot < 0 || shownSlot >= STORAGE_SLOTS
+                || !(player.level() instanceof ServerLevel sourceLevel)) return false;
+        if (ChestDirectory.ensure(sourceLevel, chest).isEmpty()) return false;
+        int index = backing(shownSlot);
+        if (index < 0) return false;
+        ItemStack key = chest.getStored(index).copy();
+        if (key.isEmpty()) return false;
+        // Prevent clients from sending to arbitrary or no-longer-bookmarked targets.
+        if (ChestDirectory.recipients(sourceLevel, chest.getBlockPos()).stream()
+                .noneMatch(name -> NameRules.key(name).equals(NameRules.key(targetName)))) return false;
+        ChestDirectory.Entry entry = ChestDirectory.find(targetName);
+        if (entry == null || (entry.pos().equals(chest.getBlockPos())
+                && entry.dimension().equals(sourceLevel.dimension().identifier().toString()))) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("message.infinitechest.target_missing"));
+            return false;
+        }
+        ServerLevel targetLevel = ChestDirectory.resolve(sourceLevel.getServer(), entry);
+        if (targetLevel == null || !targetLevel.hasChunkAt(entry.pos())) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("message.infinitechest.target_unloaded"));
+            return false;
+        }
+        if (!(targetLevel.getBlockEntity(entry.pos()) instanceof InfiniteChestBlockEntity target)) {
+            ChestDirectory.release(targetLevel, entry.pos());
+            sendTargets(player);
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("message.infinitechest.target_missing"));
+            return false;
+        }
+        // An old or tampered registry entry must never direct items to an unrelated container.
+        String verified = ChestDirectory.ensure(targetLevel, target);
+        if (!verified.equals(entry.name())) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("message.infinitechest.target_missing"));
+            return false;
+        }
+        int remaining = (int)Math.min(chest.countMatching(key), amount);
+        int moved = 0;
+        while (remaining > 0) {
+            ItemStack extracted = chest.removeMatching(key, Math.min(remaining, key.getMaxStackSize()));
+            if (extracted.isEmpty()) break;
+            try {
+                target.deposit(extracted);
+            } catch (RuntimeException failure) {
+                chest.deposit(extracted);
+                InfiniteChestMod.LOGGER.error("Named storage transfer failed; current stack restored", failure);
+                break;
+            }
+            remaining -= extracted.getCount();
+            moved += extracted.getCount();
+        }
+        refresh();
+        broadcastFullState();
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("message.infinitechest.sent", moved));
+        return moved > 0;
     }
 
     public int page() { return page; }

@@ -5,7 +5,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.world.level.storage.LevelResource;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.minecraft.network.chat.Component;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -38,17 +37,25 @@ public final class InfiniteChestMod implements ModInitializer {
         StorageConfig.load();
         RecipeConfig.load();
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            ChestDirectory.open(server);
             RecipeConfig.load();
             RecipeConfig.installPack(server.getWorldPath(LevelResource.ROOT));
         });
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> ChestDirectory.close());
         StorageCommands.register();
         GuiNetwork.register();
-        PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, entity) -> {
-            if (entity instanceof InfiniteChestBlockEntity chest && !chest.isStorageEmpty()) {
-                if (!world.isClientSide()) player.sendOverlayMessage(Component.translatable("message.infinitechest.not_empty"));
-                return false;
+        // Filled chests are breakable. Emit all stored stacks only AFTER Minecraft
+        // confirmed the block was destroyed, never in BEFORE (which could be cancelled).
+        PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, entity) -> {
+            if (world instanceof net.minecraft.server.level.ServerLevel serverLevel
+                    && state.is(CHEST)) {
+                if (entity instanceof InfiniteChestBlockEntity chest) {
+                    for (net.minecraft.world.item.ItemStack stack : chest.snapshot()) {
+                        net.minecraft.world.level.block.Block.popResource(serverLevel, pos, stack);
+                    }
+                }
+                ChestDirectory.release(serverLevel, pos);
             }
-            return true;
         });
         Registry.register(BuiltInRegistries.BLOCK, CHEST_ID, CHEST);
         Registry.register(BuiltInRegistries.ITEM, CHEST_ID, CHEST_ITEM);

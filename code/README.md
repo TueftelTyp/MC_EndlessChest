@@ -1,4 +1,4 @@
-# Endless Chest v2.2 — Source / Build candidate
+# Endless Chest v2.6 — Source / Build candidate
 
 Author: **TueftelTyp**  
 Minecraft **26.3**, Fabric, Java **25**.
@@ -41,6 +41,52 @@ Config recipe defaults to 8 diamond blocks around a chest.
 - Do not deploy in an important world without testing save/reload, insertion, extraction, page navigation, transfer failures and mod upgrades.
 
 
-## v2.2: Minecraft 26.3 compile fix
+## v2.6: Minecraft 26.3 compile fix
 
 Replaced all five `GuiGraphicsExtractor.drawString(...)` calls with the supported `GuiGraphicsExtractor.text(...)` API in `EndlessChestScreen.java`. No inventory or transfer behavior was intentionally changed. Compilation and in-game tests remain to be performed locally.
+
+## Named chest network (v3.0)
+
+- Every newly placed Endless Chest receives a random unique name such as `Chest-5A7C2D91`.
+- Open the chest, edit its name at the top right, and press **Ändern / Rename**.
+- Names are unique across the entire save, including all dimensions and unloaded chunks. Case does not matter (`Mine` and `mine` are the same name). A duplicate is rejected and the old name stays in place.
+- Naming allows letters, numbers, spaces, hyphens and underscores, up to 24 characters.
+- Use the `<` and `>` recipient selectors in the GUI, select an item and amount, then press **Senden / Send**. The directory lists registered Endless Chests; normal vanilla chests do not have names in this system.
+- Refresh the list using **Ziele aktualisieren / Refresh destinations** when another chest is placed or renamed.
+- Existing chests from v2.6 are registered when they are next opened. Their original storage remains unchanged.
+- A destination must be **loaded** (chunk currently active). This works across dimensions but does not force chunks to load. An unavailable destination is rejected *before* withdrawing items.
+- Names are persisted in `<world>/endlesschest_names.json`, while item contents and the name are also saved in the chest block entity. Back up the world and the directory file together.
+- When an empty chest is broken normally, its name is released. External tools or unusual block removals may leave stale names; reinstalling a chest at the same location generates a fresh identity.
+
+**Build verification:** Java 25 and full Minecraft/Fabric dependencies are needed for the final Gradle build. The included `tests/NameRulesTest.java` compiles independently and validates name normalization; this alone does not prove the mod is runnable.
+
+
+## v3.0 Buildkorrekturen
+
+- Fehlenden `java.util.Locale`-Import in `ChestDirectory` hinzugefuegt.
+- Aktuelle Minecraft-26.3-Bildschirmabfrage auf `client.gui.screen()` umgestellt.
+- Name, Netzwerk und Grafik der v2.7 beibehalten.
+- Vollstaendiger Fabric-Build muss lokal mit JDK 25 ausgefuehrt werden.
+
+
+### Saved recipients (v3.0)
+Each chest has its own recipient bookmarks. Enter a registered chest name and click +. Browse with < / > and remove with Remove. Only saved targets can receive transfers. Bookmarks persist in `endlesschest_names.json`, follow renamed chests, and are purged on a valid block break. Offline chunks remain unavailable for actual transfer.
+
+
+## v3.0 storage interaction and chest removal
+
+- **Vanilla-style mouse interaction:** Pick up, split, and place stacks in the visible storage slots. Shift-click moves stacks between storage and the player inventory.
+- **Destination browsing:** The selected saved destination is displayed in a read-only field between the arrows, together with its index/count. A delayed target-list refresh after opening helps ensure the list appears.
+- **Break filled chests:** When a player successfully mines the chest, all stored stacks are dropped on the ground and its registered name/bookmarks are released. This **does not** preserve items inside the dropped chest item.
+- **Caution:** A chest containing very large quantities can create a large number of dropped ItemEntities and cause severe lag. Empty very large chests before breaking.
+- **Limitations:** Automated destruction by commands, world-editing tools or explosions is not covered by the player-break drop hook; such methods can delete stored items. Back up your worlds before updating.
+- **Testing:** This source archive was not Gradle-built or run in Minecraft in this environment.
+
+
+## v3.1 – Doppelklick zur Versandauswahl
+
+Doppelklicke auf einen belegten Lager-Slot. Der Slot wird als Quelle für
+„Senden“ markiert, seine Nummer automatisch in das Slot-Feld eingetragen
+und die Auswahl mit einem cyanfarbenen Rand angezeigt. Die üblichen
+Minecraft-Klickaktionen bleiben erhalten. Nach Seitenwechsel oder Suche
+wird die Auswahl zurückgesetzt.
