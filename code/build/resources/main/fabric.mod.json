@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "infinitechest",
-  "version": "2.1",
+  "version": "3.1",
   "name": "Endless Chest",
   "description": "Endless Chest: paged searchable storage with a dedicated inventory, sorting and GUI item transfers.",
   "authors": [
