@@ -50,5 +50,15 @@
   "message.infinitechest.recipient_not_found": "Destination chest does not exist or is not on the list.",
   "message.infinitechest.recipient_full": "Maximum of 100 recipients per chest.",
   "gui.infinitechest.selection_on": "Select: ON",
-  "gui.infinitechest.selection_off": "Select: OFF"
+  "gui.infinitechest.selection_off": "Select: OFF",
+  "config.infinitechest.nearby_crafting": "Nearby crafting",
+  "config.infinitechest.nearby_enabled": "Enable crafting from nearby Endless Chests",
+  "config.infinitechest.nearby_radius": "Nearby crafting radius (blocks)",
+  "message.infinitechest.craft_disabled": "Nearby crafting is disabled on this server.",
+  "message.infinitechest.craft_invalid": "No crafting recipe with that ID exists.",
+  "message.infinitechest.craft_unsupported": "This recipe cannot be crafted using the nearby crafting command.",
+  "message.infinitechest.craft_no_chests": "No loaded Endless Chest with items is within crafting range.",
+  "message.infinitechest.craft_missing": "Not enough matching items in nearby Endless Chests.",
+  "message.infinitechest.craft_failed": "Crafting was cancelled safely because a chest changed.",
+  "message.infinitechest.craft_success": "Crafted %s x%s from nearby Endless Chests."
 }

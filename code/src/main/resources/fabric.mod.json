@@ -32,5 +32,8 @@
     "cloth-config": "*",
     "modmenu": "*"
   },
-  "icon": "icon.png"
+  "icon": "icon.png",
+  "mixins": [
+    "infinitechest.mixins.json"
+  ]
 }

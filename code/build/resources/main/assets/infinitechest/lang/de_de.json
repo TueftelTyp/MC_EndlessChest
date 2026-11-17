@@ -50,5 +50,15 @@
   "message.infinitechest.recipient_not_found": "Diese Zielkiste existiert nicht oder steht nicht auf der Liste.",
   "message.infinitechest.recipient_full": "Maximal 100 Empfaenger pro Kiste.",
   "gui.infinitechest.selection_on": "Auswahl: AN",
-  "gui.infinitechest.selection_off": "Auswahl: AUS"
+  "gui.infinitechest.selection_off": "Auswahl: AUS",
+  "config.infinitechest.nearby_crafting": "Crafting aus Kisten",
+  "config.infinitechest.nearby_enabled": "Crafting aus nahegelegenen Endless Chests aktivieren",
+  "config.infinitechest.nearby_radius": "Crafting-Radius (Bloecke)",
+  "message.infinitechest.craft_disabled": "Crafting aus Kisten ist auf diesem Server deaktiviert.",
+  "message.infinitechest.craft_invalid": "Unter dieser ID wurde kein Crafting-Rezept gefunden.",
+  "message.infinitechest.craft_unsupported": "Dieses Rezept wird vom Kisten-Crafting-Befehl nicht unterstuetzt.",
+  "message.infinitechest.craft_no_chests": "Keine geladene Endless Chest mit Items innerhalb des Radius gefunden.",
+  "message.infinitechest.craft_missing": "Nicht genug passende Zutaten in nahegelegenen Endless Chests.",
+  "message.infinitechest.craft_failed": "Crafting abgebrochen, weil sich der Lagerbestand veraendert hat.",
+  "message.infinitechest.craft_success": "%s x%s aus nahegelegenen Endless Chests hergestellt."
 }

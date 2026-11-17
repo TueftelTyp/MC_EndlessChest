@@ -22,6 +22,11 @@ public final class InfiniteChestModMenu implements ModMenuApi {
             cat.addEntry(e.startBooleanToggle(Component.translatable("config.infinitechest.vanilla"),c.allowTransferToVanilla).setDefaultValue(true).setSaveConsumer(v->c.allowTransferToVanilla=v).build());
             cat.addEntry(e.startBooleanToggle(Component.translatable("config.infinitechest.remote"),c.allowRemoteTransfers).setDefaultValue(true).setSaveConsumer(v->c.allowRemoteTransfers=v).build());
             cat.addEntry(e.startBooleanToggle(Component.translatable("config.infinitechest.sort"),c.sortByQuantity).setDefaultValue(false).setSaveConsumer(v->c.sortByQuantity=v).build());
+            ConfigCategory nearby=b.getOrCreateCategory(Component.translatable("config.infinitechest.nearby_crafting"));
+            nearby.addEntry(e.startBooleanToggle(Component.translatable("config.infinitechest.nearby_enabled"), c.enableNearbyCrafting)
+                .setDefaultValue(true).setSaveConsumer(v -> c.enableNearbyCrafting = v).build());
+            nearby.addEntry(e.startIntField(Component.translatable("config.infinitechest.nearby_radius"), c.nearbyCraftingRadius)
+                .setMin(1).setMax(32).setDefaultValue(8).setSaveConsumer(v -> c.nearbyCraftingRadius = v).build());
             ConfigCategory crafting=b.getOrCreateCategory(Component.literal("Endless Chest Recipe / Rezept"));
             for (int i=0; i<9; i++) {
                 final int slot=i;

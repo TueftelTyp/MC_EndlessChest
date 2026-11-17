@@ -113,3 +113,32 @@ Der Button `Auswahl: AUS` aktiviert den Auswahlmodus. Solange `Auswahl: AN` ange
 
 ### Version 3.6 model fix
 Removed the extra underside base plate from all chest model states to avoid overlapping coplanar bottom faces (z-fighting). The existing chest body retains its bottom face and the block remains `noOcclusion()` to render neighboring surfaces correctly. Textures and animation are unchanged.
+
+## Nearby Crafting (v3.8 preview)
+
+Server-side nearby crafting is controlled by `config/mc-infinite-storage.json`:
+
+```json
+"enableNearbyCrafting": true,
+"nearbyCraftingRadius": 8
+```
+
+Both options also appear under **Nearby crafting** in Mod Menu (Cloth Config). On dedicated servers, the **server's JSON** is authoritative; client-side Mod Menu settings do not alter the remote server's rules. Restart the server after JSON edits. Radius is measured from the player's position to the Endless Chest in the same dimension, 1–32 blocks. Only loaded, registered chests participate.
+
+**Current interface:** `/endlesscraft minecraft:chest` crafts one recipe directly using items stored in nearby Endless Chests, placing the result in the player's inventory. Standard shaped/shapeless recipes are supported where ingredient placement can be resolved. This is an initial server-side integration, **not yet native recipe-book/vanilla crafting-table integration**. Special or complex recipes may not be supported. Back up your world before testing.
+
+
+## v3.8 Build Fix
+
+Updated `ServerPlayer.drop` to the Minecraft 26.3 three-argument API using `Prediction.SERVER_ONLY`.
+
+
+### Experimental vanilla recipe-book integration (v3.9)
+
+When nearby crafting is enabled, selecting a standard crafting recipe in a regular
+crafting table attempts to supply missing ingredients from loaded Endless Chests
+within the configured radius. The server moves only the required ingredients into
+the player inventory, then vanilla handles recipe placement and consumption.
+Recipes may still appear **red** in the client recipe book until clicked.
+This feature has not been validated by a Minecraft 26.3 Gradle build or in-game test.
+Use a backup/test world first. Existing `/endlesscraft` command is retained.

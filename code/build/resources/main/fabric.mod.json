@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "infinitechest",
-  "version": "3.6",
+  "version": "3.9",
   "name": "Endless Chest",
   "description": "Endless Chest adds searchable, sortable, paged storage with uniquely named chests, saved destinations, and GUI item transfers.",
   "authors": [
@@ -32,5 +32,8 @@
     "cloth-config": "*",
     "modmenu": "*"
   },
-  "icon": "icon.png"
+  "icon": "icon.png",
+  "mixins": [
+    "infinitechest.mixins.json"
+  ]
 }

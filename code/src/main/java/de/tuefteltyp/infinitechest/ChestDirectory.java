@@ -80,6 +80,16 @@ public final class ChestDirectory {
 
     public static void close() { ENTRIES.clear(); database = null; ready = false; }
 
+    /** World-indexed chest locations. Entries can be stale: never trust them without rechecking the block. */
+    public static List<BlockPos> locations(ServerLevel level) {
+        if (!ready) return List.of();
+        String dim = dimension(level);
+        return ENTRIES.values().stream()
+            .filter(entry -> entry.dimension().equals(dim))
+            .map(Entry::pos).toList();
+    }
+
+
     private static boolean persist(Map<String, Entry> entries) {
         if (!ready || database == null) return false;
         Path temp = database.resolveSibling(database.getFileName().toString() + ".tmp");

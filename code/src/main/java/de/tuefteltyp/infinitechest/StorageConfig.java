@@ -16,6 +16,10 @@ public final class StorageConfig {
     public boolean allowRemoteTransfers = true;
     public boolean notifyOnDeposit = true;
     public boolean sortByQuantity = false;
+    /** Authoritative server option for crafting from nearby Endless Chests. */
+    public boolean enableNearbyCrafting = true;
+    /** Euclidean distance in blocks between the player and chest. */
+    public int nearbyCraftingRadius = 8;
 
     public static void load() {
         try {
@@ -26,6 +30,7 @@ public final class StorageConfig {
             }
             INSTANCE.itemsPerPage = Math.max(1, Math.min(20, INSTANCE.itemsPerPage));
             INSTANCE.maxTransferDistance = Math.max(1, Math.min(100000, INSTANCE.maxTransferDistance));
+            INSTANCE.nearbyCraftingRadius = Math.max(1, Math.min(32, INSTANCE.nearbyCraftingRadius));
             save();
         } catch (Exception e) { InfiniteChestMod.LOGGER.error("Could not load storage config", e); }
     }
