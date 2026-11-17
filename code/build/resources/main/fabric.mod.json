@@ -1,12 +1,16 @@
 {
   "schemaVersion": 1,
   "id": "infinitechest",
-  "version": "3.4",
+  "version": "3.5",
   "name": "Endless Chest",
-  "description": "Endless Chest: paged searchable storage with a dedicated inventory, sorting and GUI item transfers.",
+  "description": "Endless Chest adds searchable, sortable, paged storage with uniquely named chests, saved destinations, and GUI item transfers.",
   "authors": [
     "TueftelTyp"
   ],
+  "contact": {
+    "homepage": "https://github.com/TueftelTyp/MC_EndlessChest",
+    "issues": "https://github.com/TueftelTyp/MC_EndlessChest/issues"
+  },
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
