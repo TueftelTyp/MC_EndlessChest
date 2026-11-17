@@ -7,6 +7,10 @@
   "authors": [
     "TueftelTyp"
   ],
+  "contact": {
+    "homepage": "https://github.com/TueftelTyp/MC_EndlessChest",
+    "issues": "https://github.com/TueftelTyp/MC_EndlessChest/issues"
+  },
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
