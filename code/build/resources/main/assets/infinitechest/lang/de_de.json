@@ -48,5 +48,7 @@
   "message.infinitechest.recipient_removed": "Empfaenger geloescht.",
   "message.infinitechest.recipient_duplicate": "Empfaenger ist bereits gespeichert.",
   "message.infinitechest.recipient_not_found": "Diese Zielkiste existiert nicht oder steht nicht auf der Liste.",
-  "message.infinitechest.recipient_full": "Maximal 100 Empfaenger pro Kiste."
+  "message.infinitechest.recipient_full": "Maximal 100 Empfaenger pro Kiste.",
+  "gui.infinitechest.selection_on": "Auswahl: AN",
+  "gui.infinitechest.selection_off": "Auswahl: AUS"
 }

@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -28,10 +31,10 @@ public final class EndlessChestScreen extends AbstractContainerScreen<PagedChest
     private EditBox selectedTargetDisplay;
     private int targetRefreshDelay = 15;
     private int chosenSlot = -1;
-    // The click sequence only selects an item for shipping. Ordinary slot handling stays vanilla.
-    private int lastClickedStorageSlot = -1;
-    private long lastStorageClickAt = 0L;
-    private static final long DOUBLE_CLICK_NANOS = 350_000_000L;
+    // Persistent selection mode avoids relying on platform-dependent Ctrl modifiers.
+    private boolean selectionMode;
+    private boolean consumeSelectionRelease;
+    private Button selectionButton;
     private int delayedSearch = -1;
     private String lastQuery = "";
     private List<String> targets = List.of();
@@ -58,7 +61,12 @@ public final class EndlessChestScreen extends AbstractContainerScreen<PagedChest
         addRenderableWidget(Button.builder(Component.literal("<"), b -> sendPage(0)).bounds(x+176, y+31, 20, 18).build());
         addRenderableWidget(Button.builder(Component.literal(">"), b -> sendPage(1)).bounds(x+303, y+31, 20, 18).build());
         addRenderableWidget(Button.builder(Component.translatable("gui.infinitechest.sort"), b -> sendPage(2))
-            .bounds(x+176, y+53, 147, 18).build());
+            .bounds(x+176, y+53, 70, 18).build());
+        selectionButton = Button.builder(selectionModeLabel(), b -> {
+            selectionMode = !selectionMode;
+            selectionButton.setMessage(selectionModeLabel());
+        }).bounds(x+250, y+53, 73, 18).build();
+        addRenderableWidget(selectionButton);
         addRenderableWidget(Button.builder(Component.translatable("gui.infinitechest.withdraw"), b -> sendWithdraw())
             .bounds(x+176, y+76, 147, 18).build());
         itemNumber = field(x+176, y+98, 56, "gui.infinitechest.slot");
@@ -144,8 +152,6 @@ public final class EndlessChestScreen extends AbstractContainerScreen<PagedChest
 
     private void clearSelection() {
         chosenSlot = -1;
-        lastClickedStorageSlot = -1;
-        lastStorageClickAt = 0L;
         if (itemNumber != null) itemNumber.setValue("");
     }
 
@@ -181,29 +187,81 @@ public final class EndlessChestScreen extends AbstractContainerScreen<PagedChest
         ClientPlayNetworking.send(new GuiNetwork.NamedTransfer(idx, targets.get(targetIndex), quantity));
     }
 
+    private Component selectionModeLabel() {
+        return Component.translatable(selectionMode
+            ? "gui.infinitechest.selection_on" : "gui.infinitechest.selection_off");
+    }
+
+    /**
+     * When selection mode is enabled a regular left-click selects a storage slot.
+     * Crucially this returns before vanilla's container handling, preventing pickup.
+     * Ctrl-click is also recognized where the platform reports that modifier.
+     */
+    @Override public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (event.button() == 0 && !selectionMode && event.hasControlDown()) {
+            double x = event.x() - leftPos;
+            double y = event.y() - topPos;
+            for (int i = 0; i < PagedChestMenu.STORAGE_SLOTS; i++) {
+                Slot slot = menu.slots.get(i);
+                if (x >= slot.x - 1 && x < slot.x + 17
+                        && y >= slot.y - 1 && y < slot.y + 17) {
+                    if (slot.hasItem()) {
+                        chosenSlot = i;
+                        itemNumber.setValue(Integer.toString(i + 1));
+                    } else {
+                        clearSelection();
+                    }
+                    consumeSelectionRelease = true;
+                    return true;
+                }
+            }
+        }
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    /**
+     * Minecraft 26.3 uses slotClicked as the final gateway to the inventory
+     * transaction. Catch selection here instead of depending on mouse position
+     * translation in mouseClicked; no container click is sent to the server.
+     * Normal slot interactions continue through the vanilla implementation.
+     */
     @Override protected void slotClicked(Slot slot, int slotId, int mouseButton,
-            net.minecraft.world.inventory.ContainerInput clickType) {
-        // First perform vanilla item manipulation, including shift-click and cursor pickup.
+                                         net.minecraft.world.inventory.ContainerInput clickType) {
+        if (selectionMode && mouseButton == 0 && slot != null
+                && slotId >= 0 && slotId < PagedChestMenu.STORAGE_SLOTS) {
+            if (slot.hasItem()) {
+                chosenSlot = slotId;
+                itemNumber.setValue(Integer.toString(slotId + 1));
+            } else {
+                clearSelection();
+            }
+            consumeSelectionRelease = true;
+            return; // Critical: no vanilla pickup and no server inventory transaction.
+        }
         super.slotClicked(slot, slotId, mouseButton, clickType);
-        if (slot == null || slotId < 0 || slotId >= PagedChestMenu.STORAGE_SLOTS || mouseButton != 0) {
-            lastClickedStorageSlot = -1;
-            lastStorageClickAt = 0L;
-            return;
+    }
+
+    /** Do not allow the corresponding release to start vanilla item dragging. */
+    @Override public boolean mouseReleased(MouseButtonEvent event) {
+        if (event.button() == 0 && consumeSelectionRelease) {
+            consumeSelectionRelease = false;
+            return true;
         }
-        long now = System.nanoTime();
-        boolean doubleClick = lastClickedStorageSlot == slotId
-                && now - lastStorageClickAt > 0L && now - lastStorageClickAt <= DOUBLE_CLICK_NANOS;
-        // A double click does not choose an empty slot. If the first click picked up a
-        // stack, the second typically puts it back; after vanilla processing it is visible.
-        if (doubleClick && slot.hasItem()) {
-            chosenSlot = slotId;
-            if (itemNumber != null) itemNumber.setValue(Integer.toString(slotId + 1));
-            lastClickedStorageSlot = -1;
-            lastStorageClickAt = 0L;
-        } else {
-            lastClickedStorageSlot = slotId;
-            lastStorageClickAt = now;
+        return super.mouseReleased(event);
+    }
+
+    /**
+     * A focused text field must consume inventory shortcuts such as E.
+     * Character input is delivered separately via charTyped by Minecraft.
+     * Escape is still handled by the normal screen logic.
+     */
+    @Override public boolean keyPressed(KeyEvent event) {
+        if (this.getFocused() instanceof EditBox edit && edit.isFocused()
+                && event.key() != InputConstants.KEY_ESCAPE) {
+            edit.keyPressed(event);
+            return true;
         }
+        return super.keyPressed(event);
     }
 
     @Override public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {

@@ -48,5 +48,7 @@
   "message.infinitechest.recipient_removed": "Recipient removed.",
   "message.infinitechest.recipient_duplicate": "Recipient already saved.",
   "message.infinitechest.recipient_not_found": "Destination chest does not exist or is not on the list.",
-  "message.infinitechest.recipient_full": "Maximum of 100 recipients per chest."
+  "message.infinitechest.recipient_full": "Maximum of 100 recipients per chest.",
+  "gui.infinitechest.selection_on": "Select: ON",
+  "gui.infinitechest.selection_off": "Select: OFF"
 }
