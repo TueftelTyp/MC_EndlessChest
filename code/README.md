@@ -142,3 +142,7 @@ the player inventory, then vanilla handles recipe placement and consumption.
 Recipes may still appear **red** in the client recipe book until clicked.
 This feature has not been validated by a Minecraft 26.3 Gradle build or in-game test.
 Use a backup/test world first. Existing `/endlesscraft` command is retained.
+
+## Recipe book filtering (v4.1)
+
+The standard crafting table now receives server-synchronized item availability from loaded nearby Endless Chests. The green **craftable-only** recipe book filter includes these item counts. The server remains authoritative when actually placing recipes; only loaded chunks and the configured radius are considered. Recipe book updates run every 10 server ticks. Vanilla crafting in the 2x2 player inventory is not affected.

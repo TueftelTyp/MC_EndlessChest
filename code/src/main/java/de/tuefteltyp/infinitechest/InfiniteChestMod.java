@@ -45,6 +45,7 @@ public final class InfiniteChestMod implements ModInitializer {
         StorageCommands.register();
         NearbyCrafting.register();
         GuiNetwork.register();
+        NearbyCraftingRecipeSync.register();
         // Filled chests are breakable. Emit all stored stacks only AFTER Minecraft
         // confirmed the block was destroyed, never in BEFORE (which could be cancelled).
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, entity) -> {
