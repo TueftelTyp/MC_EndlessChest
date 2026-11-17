@@ -26,7 +26,7 @@ public final class InfiniteChestMod implements ModInitializer {
     public static final Identifier CHEST_ID = Identifier.fromNamespaceAndPath(ID, "infinite_chest");
     public static final ResourceKey<Block> BLOCK_KEY = ResourceKey.create(Registries.BLOCK, CHEST_ID);
     public static final ResourceKey<Item> ITEM_KEY = ResourceKey.create(Registries.ITEM, CHEST_ID);
-    public static final InfiniteChestBlock CHEST = new InfiniteChestBlock(BlockBehaviour.Properties.of().strength(3.0f, 3600000.0f).requiresCorrectToolForDrops().setId(BLOCK_KEY));
+    public static final InfiniteChestBlock CHEST = new InfiniteChestBlock(BlockBehaviour.Properties.of().strength(3.0f, 3600000.0f).noOcclusion().requiresCorrectToolForDrops().setId(BLOCK_KEY));
     public static final BlockItem CHEST_ITEM = new BlockItem(CHEST, new Item.Properties().useBlockDescriptionPrefix().setId(ITEM_KEY));
     public static BlockEntityType<InfiniteChestBlockEntity> CHEST_BE;
     public static final MenuType<PagedChestMenu> CHEST_MENU = Registry.register(

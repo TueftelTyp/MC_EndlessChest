@@ -3,7 +3,7 @@
   "id": "infinitechest",
   "version": "${version}",
   "name": "Endless Chest",
-  "description": "Endless Chest: paged searchable storage with a dedicated inventory, sorting and GUI item transfers.",
+  "description": "Endless Chest adds searchable, sortable, paged storage with uniquely named chests, saved destinations, and GUI item transfers.",
   "authors": [
     "TueftelTyp"
   ],

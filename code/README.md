@@ -83,7 +83,7 @@ Each chest has its own recipient bookmarks. Enter a registered chest name and cl
 - **Testing:** This source archive was not Gradle-built or run in Minecraft in this environment.
 
 
-## v3.4 – Doppelklick zur Versandauswahl
+## v3.5 – Doppelklick zur Versandauswahl
 
 Doppelklicke auf einen belegten Lager-Slot. Der Slot wird als Quelle für
 „Senden“ markiert, seine Nummer automatisch in das Slot-Feld eingetragen
@@ -92,7 +92,7 @@ Minecraft-Klickaktionen bleiben erhalten. Nach Seitenwechsel oder Suche
 wird die Auswahl zurückgesetzt.
 
 
-## Versand-Auswahl / Selecting items for transfer (v3.4)
+## Versand-Auswahl / Selecting items for transfer (v3.5)
 
 - **DE:** Mit **Strg + Linksklick** auf ein gelagertes Item wird es fuer den Versand markiert. Der Slot wird automatisch eingetragen und cyan umrandet; der Itemstack bleibt dabei unveraendert. Normale Klicks und Shift-Klicks funktionieren weiterhin wie in Vanilla.
 - **EN:** Use **Ctrl + left click** on a stored item to select it for transfer without moving the stack. The slot number and cyan outline update automatically. Regular clicks and Shift-clicks remain vanilla.
@@ -101,7 +101,11 @@ wird die Auswahl zurückgesetzt.
 
 **Hinweis:** Ctrl + Linksklick ist bei Mac mit aktivierter Rechtsklick-Emulation eventuell anderweitig belegt.
 
-## Auswahlmodus (v3.4)
+## Auswahlmodus (v3.5)
 
 Der Button `Auswahl: AUS` aktiviert den Auswahlmodus. Solange `Auswahl: AN` angezeigt wird, markiert ein einfacher Linksklick auf einen gefuellten Lager-Slot den Versandartikel, ohne Gegenstaende aufzunehmen. Die Slotnummer wird automatisch gesetzt. Durch erneuten Klick auf den Button wird der normale Vanilla-Klickmodus wiederhergestellt. Strg + Linksklick funktioniert zusaetzlich auf Plattformen, die den Modifikator im Mausereignis melden.
-\n\n### v3.4 selection mode correction\nWhen selection mode is on, left-clicking any storage slot is handled in `slotClicked` before Minecraft sends the normal container transaction; the selected slot number is filled automatically. Normal clicks remain unchanged with selection mode off.\n
+\n\n### v3.5 selection mode correction\nWhen selection mode is on, left-clicking any storage slot is handled in `slotClicked` before Minecraft sends the normal container transaction; the selected slot number is filled automatically. Normal clicks remain unchanged with selection mode off.\n
+
+### Version 3.5
+- Prevents adjacent floor/wall faces from being culled by registering the chest block with `noOcclusion()`.
+- Uses the project-provided `fabric.mod.json` as the metadata baseline, including links and dependencies.
