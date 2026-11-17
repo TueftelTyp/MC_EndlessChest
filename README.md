@@ -13,7 +13,7 @@ Organize your items, search your storage, and build a connected storage network 
 - **Item Transfers** – Send items directly to other Endless Chests.
 - **Saved Destinations** – Add, browse, and remove frequently used recipients.
 - **Persistent Storage** – Chest contents and network information are saved with your world.
-- **Crafting Range** - Craft with Items inside of the chest in configurable radius
+- **Crafting Range** - Crafting directly from the endless chest in adjustable radius.
 - **Custom Design** – Unique textures and an animated chest lid.
 - **Multiplayer Support** – Designed for Fabric servers and singleplayer worlds.
 - **Language Support** – English and German.
